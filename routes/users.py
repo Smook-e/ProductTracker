@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from database import get_db
 from models import User
-from schemas import UserCreate
+from schemas import UserCreate, UserRead
 from utils.hash import hash_password
 
 
@@ -14,11 +14,11 @@ router = APIRouter(
     tags=["users"],
 )
 
-@router.get("/")
+@router.get("/", response_model=list[UserRead])
 async def read_users(db: Session = Depends(get_db)):
     return db.query(User).all()
 
-@router.post("/")
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=UserRead)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     user.password_hash = hash_password(user.password_hash)
     new_user = User(**user.model_dump())
