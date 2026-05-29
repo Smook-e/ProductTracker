@@ -37,3 +37,10 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
             raise HTTPException(status_code=500, detail="Internal server error")
     db.refresh(new_user)
     return new_user
+
+@router.get("/{user_id}", response_model=UserRead)
+async def read_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
