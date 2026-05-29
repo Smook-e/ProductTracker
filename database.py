@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from base import Base
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -11,12 +12,10 @@ engine = create_engine(DATABASE_URL)
 # factory that creates database sessions
 SessionLocal = sessionmaker(bind=engine)
 
-# base class all your models will inherit from
-class Base(DeclarativeBase):
-    pass
 
 # this runs once at startup and creates all tables
 def create_tables():
+    print(DATABASE_URL)
     Base.metadata.create_all(engine)
 
 # opens a db session for each request, closes it after
