@@ -52,3 +52,28 @@ async def delete_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     db.delete(user)
     db.commit()
+
+@router.put("/{user_id}", response_model=UserRead)
+async def update_user(user_id: int, user_update: UserCreate, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    for key, value in user_update.model_dump().items():
+        if key == "password_hash":
+            setattr(user, key, hash_password(value))
+        else:
+            setattr(user, key, value)
+    try:
+        db.commit()
+    except IntegrityError as e:
+        db.rollback()
+        if "users_email_key" in str(e.orig):
+            raise HTTPException(status_code=400, detail="Email already registered")
+        elif "users_phone_number_key" in str(e.orig):
+            raise HTTPException(status_code=400, detail="Phone number already registered")
+        elif "users_username_key" in str(e.orig):
+            raise HTTPException(status_code=400, detail="Username already taken")
+        else:
+            raise HTTPException(status_code=500, detail="Internal server error")
+    db.refresh(user)
+    return user
