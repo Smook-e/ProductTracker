@@ -11,9 +11,7 @@ class NotificationChannel(enum.Enum):
     email = "email"
     sms = "sms"
 
-class ProductSource(enum.Enum):
-    amazon = "amazon"
-    other = "other"
+
 
 class User(Base):
     __tablename__ = "users"
@@ -40,7 +38,7 @@ class Product(Base):
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=func.now()
     )
-    source: Mapped[ProductSource] = mapped_column(Enum(ProductSource), nullable=False)
+    source: Mapped[str] = mapped_column()
 
 class PriceHistory(Base):
     __tablename__ = "price_history"
