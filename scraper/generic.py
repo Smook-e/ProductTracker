@@ -26,7 +26,11 @@ def scrape_generic(url: str) -> dict:
 
 
     scraper = ScraperFactory.create_scraper(domain, response.text)
-    print(scraper.title, "\n", scraper.price, "\n", scraper.image_url)
+    return {
+        "title": scraper.title,
+        "price": scraper.price,
+        "image_url": scraper.image_url,
+    }
     
     
 
