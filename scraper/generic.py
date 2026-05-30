@@ -10,7 +10,8 @@ from scraper.factory import ScraperFactory
 
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 KHTML, like Gecko Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9",
 }
 
@@ -26,15 +27,19 @@ def scrape_generic(url: str) -> dict:
 
 
     scraper = ScraperFactory.create_scraper(domain, response.text)
+    if scraper.title == "N/A" and scraper.price == "N/A":
+        raise ValueError("Failed to scrape product data")
+    # print(scraper.title, "\n",  scraper.price)
     return {
         "title": scraper.title,
         "price": scraper.price,
         "image_url": scraper.image_url,
+        "source": domain,
     }
     
     
 
 
 
-url = "https://www.sigma-computer.com/en/item?id=dell-vostro-3520-intel-core-i5-1235u-intel-uhd-graphics-8gb-ddr4-3200hz-512gb-nvme-156-inch-fhd-va-250nits-120hz-dos-carbon-black-8syhihudtt0t"
-scrape_generic(url)
+url = "https://www.amazon.eg/ASUS-UX3405CA-PZ007W-Graphics-14-0-Inch-Warranty/dp/B0G42FJ9JS/?_encoding=UTF8&ref_=pd_hp_d_btf_ci_mcx_mr_ca_id_hp_d"
+# scrape_generic(url)

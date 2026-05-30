@@ -6,8 +6,11 @@ import re
 
 def _parse_price(raw: str) -> int:
     # strips currency symbols, commas, whitespace and converts to cents
+    
     cleaned = re.sub(r'[^\d.,]', '', raw)
-        
+    
+    if cleaned[-1] in ['.', ',']:
+        cleaned = cleaned[:-1]
     if not cleaned:
         return 0.0
             
@@ -55,7 +58,10 @@ class NextJsScraper(BaseScraper):
     def extract_image(self) -> None:
         img = self.soup.select_one('main img[src*="_next/image"]')
         self.image_url = img.get('src') if img else ""
-
+class amazonScraper(BaseScraper):
+    def extract_image(self) -> None:
+        img = self.soup.select_one('#landingImage')
+        self.image_url = img.get('src') if img else ""
 class GenericScraper(BaseScraper):
     def extract_image(self) -> None:
         og_img = self.soup.find('meta', property='og:image')
@@ -64,6 +70,11 @@ class GenericScraper(BaseScraper):
 
 
 SELECTORS = {
+    "www.amazon.eg": {
+        "title": "span#productTitle",       
+        "price": "span.a-price-whole",      
+        "image_url": amazonScraper,  
+    },
     "www.sigma-computer.com": {
         "title": "h1.text-2xl.font-semibold.text-sigma-blue-600",       
         "price": "span.text-3xl",      

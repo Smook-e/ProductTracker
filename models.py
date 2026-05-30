@@ -32,7 +32,7 @@ class Product(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     title: Mapped[str] = mapped_column()
-    asin: Mapped[str] = mapped_column(unique=True)
+    
     url: Mapped[str] = mapped_column()
     image_url: Mapped[str | None] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(

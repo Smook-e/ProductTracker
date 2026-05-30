@@ -15,7 +15,7 @@ SessionLocal = sessionmaker(bind=engine)
 
 # this runs once at startup and creates all tables
 def create_tables():
-    print(DATABASE_URL)
+    # print(DATABASE_URL)
     Base.metadata.create_all(engine)
 
 # opens a db session for each request, closes it after

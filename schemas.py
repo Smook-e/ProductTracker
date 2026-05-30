@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, HttpUrl
 from datetime import datetime
 from models import NotificationChannel
 
@@ -19,4 +19,12 @@ class UserRead(User):
     class Config:
         orm_mode = True
 
+class ProductScrapeRequest(BaseModel):
+    url: HttpUrl
 
+class ProductScrapeResponse(BaseModel):
+    title: str
+    price: int
+    image_url: str
+    source: str
+    url: str
