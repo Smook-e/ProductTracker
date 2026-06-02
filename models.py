@@ -38,6 +38,9 @@ class Product(Base):
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=func.now()
     )
+    next_scrape: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=func.now()
+    )
     source: Mapped[str] = mapped_column()
 
 class PriceHistory(Base):
