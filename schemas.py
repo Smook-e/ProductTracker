@@ -28,3 +28,18 @@ class ProductScrapeResponse(BaseModel):
     image_url: str
     source: str
     url: str
+
+class PriceHistoryRead(BaseModel):
+    price: int
+    recorded_at: datetime
+
+    class Config:
+        orm_mode = True
+
+class ProductRead(ProductScrapeResponse):
+    id: int
+    created_at: datetime
+    next_scrape: datetime
+    prices: list[PriceHistoryRead] = []
+    class Config:
+        orm_mode = True
