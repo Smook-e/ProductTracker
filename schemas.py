@@ -17,14 +17,14 @@ class UserRead(User):
 
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ProductScrapeRequest(BaseModel):
     url: HttpUrl
 
 class ProductScrapeResponse(BaseModel):
     title: str
-    price: int
+    
     image_url: str
     source: str
     url: str
@@ -34,12 +34,12 @@ class PriceHistoryRead(BaseModel):
     recorded_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ProductRead(ProductScrapeResponse):
     id: int
     created_at: datetime
     next_scrape: datetime
-    prices: list[PriceHistoryRead] = []
+    price_histories: list[PriceHistoryRead] = []
     class Config:
-        orm_mode = True
+        from_attributes = True

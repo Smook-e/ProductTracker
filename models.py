@@ -48,6 +48,11 @@ class Product(Base):
         lazy="selectin",           
         cascade="all, delete-orphan" 
     )
+    users: Mapped[list["UserProduct"]] = relationship(
+        back_populates="product",
+        lazy="selectin",
+        cascade="all, delete-orphan"
+    )
 
 class PriceHistory(Base):
     __tablename__ = "price_history"

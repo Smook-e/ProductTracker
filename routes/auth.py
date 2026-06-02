@@ -1,6 +1,8 @@
+from sqlalchemy import select
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
 from models import User
 
@@ -13,16 +15,19 @@ router = APIRouter(
 )
 
 @router.post("/login")
-async def login(user_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(
+async def login(user_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+    print(f"Login attempt for username: {user_data.username}")
+    db_user = await db.execute(select(User).where(
         (User.username == user_data.username) |
-        (User.email == user_data.username) 
-    ).first()
+        (User.email == user_data.username)
+    ))
+    db_user = db_user.scalar_one_or_none()
     if not db_user:
         verify_password(user_data.password, dummy_hash)
-        return HTTPException(status_code=400, detail="Invalid credentials")
+        raise HTTPException(status_code=400, detail="Invalid credentials")
     if not verify_password(user_data.password, db_user.password_hash):
-        return HTTPException(status_code=400, detail="Invalid credentials")
+        raise HTTPException(status_code=400, detail="Invalid credentials")
     payload = {"user_id": str(db_user.id), "username": db_user.username}
     token = create_access_token(payload)
+    print(f"User {db_user.username} logged in, token: {token}")
     return {"access_token": token, "token_type": "bearer"}
