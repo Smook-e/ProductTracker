@@ -32,10 +32,9 @@ def scrape_generic(url: str) -> dict:
     # print(scraper.title, "\n",  scraper.price)
     return {
         "title": scraper.title,
-        "price": scraper.price,
         "image_url": scraper.image_url,
         "source": domain,
-    }
+    }, scraper.price
     
     
 
