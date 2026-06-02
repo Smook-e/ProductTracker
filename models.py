@@ -42,6 +42,12 @@ class Product(Base):
         TIMESTAMP(timezone=True), server_default=func.now()
     )
     source: Mapped[str] = mapped_column()
+    
+    price_histories: Mapped[list["PriceHistory"]] = relationship(
+        back_populates="product",
+        lazy="selectin",           
+        cascade="all, delete-orphan" 
+    )
 
 class PriceHistory(Base):
     __tablename__ = "price_history"
@@ -55,6 +61,10 @@ class PriceHistory(Base):
         TIMESTAMP(timezone=True), server_default=func.now()
     )
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+
+    product: Mapped["Product"] = relationship(
+        back_populates="price_histories"
+    )
     
 
 
