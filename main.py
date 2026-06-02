@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from database import create_tables
+
 import models
 from routes.users import router as users_router
 from routes.auth import router as auth_router
@@ -12,7 +12,7 @@ app.include_router(auth_router)
 app.include_router(products_router)
 
 
-create_tables()
+
 
 
 

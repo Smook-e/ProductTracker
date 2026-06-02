@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import Enum, ForeignKey, func, TIMESTAMP, Numeric, orm
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
-from base import Base
+from database import Base
 
 
 class NotificationChannel(enum.Enum):
