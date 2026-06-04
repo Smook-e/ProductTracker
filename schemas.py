@@ -41,5 +41,7 @@ class ProductRead(ProductScrapeResponse):
     created_at: datetime
     next_scrape: datetime
     price_histories: list[PriceHistoryRead] = []
+    user_count: int = 0
+
     class Config:
         from_attributes = True
