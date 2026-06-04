@@ -55,7 +55,16 @@ async def read_product(product_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Product not found")
     return product
 
-
+@router.get("/me", response_model=list[ProductRead])
+async def read_user_products(db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    user_id = int(current_user["user_id"])
+    stmt = (
+        select(Product)
+        .join(UserProduct)
+        .where(UserProduct.user_id == user_id)
+    )
+    result = await db.execute(stmt)
+    return result.scalars().all()
 
 @router.post("/", response_model=ProductRead , status_code=status.HTTP_201_CREATED) 
 async def create_product(request: ProductScrapeRequest, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
