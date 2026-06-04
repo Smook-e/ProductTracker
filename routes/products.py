@@ -13,36 +13,32 @@ router = APIRouter(
     tags=["products"],
 )
 
-async def get_all_products_with_details(db: AsyncSession):
-    # 1. Select the Product and the count for ALL products
-    stmt = (
-        select(Product, func.count(UserProduct.user_id).label("tracked_by_count"))
-        .outerjoin(UserProduct, Product.id == UserProduct.product_id)
-        .group_by(Product.id)
+@router.get("/", response_model=list[ProductRead])
+async def read_all_products(db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    
+    user_count_subquery = (
+        select(func.count(UserProduct.user_id))
+        .where(UserProduct.product_id == Product.id)  
+        .scalar_subquery()
+        .label("user_count")
     )
     
-    result = await db.execute(stmt)
-    rows = result.all()  # Returns a LIST of tuples: [(Product1, count), (Product2, count), ...]
+    stmt = select(Product, user_count_subquery).order_by(user_count_subquery.desc())  
+    
+    product_result = await db.execute(stmt)
+    product_rows = product_result.all()  
     
     products_list = []
     
-    # 2. Loop through each row tuple, unpack it, and attach the count
-    for product, tracked_count in rows:
-        product.tracked_by_count = tracked_count
+    
+    for product, user_count in product_rows:
+        product.user_count = user_count
         products_list.append(product)
         
     return products_list
-@router.get("/", response_model=list[ProductRead])
-async def read_products(db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    # result = await db.execute(select(Product))
-    result = await get_products_with_user_count(db)
-    return result
-
-
-    return result.scalars().all()
 
 @router.get("/{product_id}", response_model=ProductRead)
-async def read_product(product_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
+async def read_product(product_id: int, db: AsyncSession = Depends(get_db)):
     # result = await db.execute(select(Product).where(Product.id == product_id))
     # product = result.scalar_one_or_none()
     user_count_subquery = (
@@ -58,6 +54,7 @@ async def read_product(product_id: int, db: AsyncSession = Depends(get_db), curr
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
+
 
 
 @router.post("/", response_model=ProductRead , status_code=status.HTTP_201_CREATED) 
