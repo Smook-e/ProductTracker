@@ -121,6 +121,19 @@ async def create_product(request: ProductScrapeRequest, db: AsyncSession = Depen
     await db.refresh(product)
     product.user_count = count.scalar_one()
     return product
+@router.delete("/me/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user_product(product_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    user_id = int(current_user["user_id"])
+    result = await db.execute(
+        select(UserProduct).where(
+            UserProduct.user_id == user_id, 
+            UserProduct.product_id == product_id
+        )    )
+    user_product = result.scalar_one_or_none()
+    if not user_product:
+        raise HTTPException(status_code=404, detail="Product not found in user's list")
+    await db.delete(user_product)
+    await db.commit()
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_product(product_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
