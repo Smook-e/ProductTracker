@@ -37,6 +37,31 @@ async def read_all_products(db: AsyncSession = Depends(get_db), current_user: di
         
     return products_list
 
+@router.get("/me", response_model=list[ProductRead])
+async def read_user_products(db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    user_id = int(current_user["user_id"])
+    user_count_subquery = (
+        select(func.count(UserProduct.user_id))
+        .where(UserProduct.product_id == Product.id)
+        .scalar_subquery().correlate(Product)
+        .label("user_count")
+    )
+    stmt = (
+        select(Product, user_count_subquery)
+        .join(UserProduct, Product.id == UserProduct.product_id)
+        .where(UserProduct.user_id == user_id)
+    )
+    result = await db.execute(stmt)
+    product_rows = result.all() # Use .all() to keep both items in the row tuple
+    
+    products_list = []
+    
+    # Unpack exactly like your working single-product endpoint
+    for product, user_count in product_rows:
+        product.user_count = user_count
+        products_list.append(product)
+    return products_list
+
 @router.get("/{product_id}", response_model=ProductRead)
 async def read_product(product_id: int, db: AsyncSession = Depends(get_db)):
     # result = await db.execute(select(Product).where(Product.id == product_id))
@@ -55,16 +80,6 @@ async def read_product(product_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Product not found")
     return product
 
-@router.get("/me", response_model=list[ProductRead])
-async def read_user_products(db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    user_id = int(current_user["user_id"])
-    stmt = (
-        select(Product)
-        .join(UserProduct)
-        .where(UserProduct.user_id == user_id)
-    )
-    result = await db.execute(stmt)
-    return result.scalars().all()
 
 @router.post("/", response_model=ProductRead , status_code=status.HTTP_201_CREATED) 
 async def create_product(request: ProductScrapeRequest, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
