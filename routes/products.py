@@ -80,30 +80,44 @@ async def create_product(request: ProductScrapeRequest, db: AsyncSession = Depen
         product_data, price = scrape_generic(str(request.url))
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    product_data["url"] = str(request.url)
-    db_product = Product(**product_data)
-    db_product.next_scrape = datetime.utcnow() + timedelta(hours=2) 
+    
+    urlstr = str(request.url)
+    user_id = int(current_user["user_id"])
+    result = await db.execute(select(Product).where(Product.url == str(request.url)))
+    product = result.scalar_one_or_none()
 
-    #save new product to db
-    db.add(db_product)
-    await db.commit()
-    await db.refresh(db_product)
+    #if product already exists, update the next scrape time and add user-product relationship if it doesn't exist.
+    if product:
+        product.next_scrape = datetime.utcnow() + timedelta(hours=2)
+        rel_check = await db.execute(
+            select(UserProduct).where(
+                UserProduct.user_id == user_id, 
+                UserProduct.product_id == product.id
+            )
+        )
+        if not rel_check.scalar_one_or_none():
+            db.add(UserProduct(user_id=user_id, product_id=product.id))
+    else:
 
-    #add the first price history entry for the product
-    price_history = PriceHistory(price=price, product_id=db_product.id)
+        product_data["url"] = urlstr
+        product = Product(**product_data)
+        product.next_scrape = datetime.utcnow() + timedelta(hours=2) 
+
+    
+        db.add(product)
+        await db.flush()  
+        db.add(UserProduct(user_id=user_id, product_id=product.id))
+
+    #add the price history entry for the product
+    price_history = PriceHistory(price=price, product_id=product.id)
     db.add(price_history)
     await db.commit()
     await db.refresh(price_history)
-
-    #associate product with user
-    user_product = UserProduct(user_id=int(current_user["user_id"]), product_id=db_product.id)
-    db.add(user_product)
-    await db.commit()
-    await db.refresh(user_product)
     
-    #one last refresh to get the price history relationship populated
-    await db.refresh(db_product)
-    return db_product
+    count = await db.execute(user_count_subquery)
+    await db.refresh(product)
+    product.user_count = count.scalar_one()
+    return product
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_product(product_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
