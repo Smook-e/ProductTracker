@@ -114,7 +114,10 @@ async def create_product(request: ProductScrapeRequest, db: AsyncSession = Depen
     await db.commit()
     await db.refresh(price_history)
     
-    count = await db.execute(user_count_subquery)
+    count = await db.execute(select(func.count(UserProduct.user_id).label("user_count"))
+        .where(UserProduct.product_id == product.id)
+        )
+    
     await db.refresh(product)
     product.user_count = count.scalar_one()
     return product
