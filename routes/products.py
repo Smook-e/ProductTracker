@@ -12,16 +12,16 @@ router = APIRouter(
     prefix="/products",
     tags=["products"],
 )
-
+user_count_subquery = (
+        select(func.count(UserProduct.user_id))
+        .where(UserProduct.product_id == Product.id)
+        .scalar_subquery().correlate(Product)
+        .label("user_count")
+    )
 @router.get("/", response_model=list[ProductRead])
 async def read_all_products(db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     
-    user_count_subquery = (
-        select(func.count(UserProduct.user_id))
-        .where(UserProduct.product_id == Product.id)  
-        .scalar_subquery()
-        .label("user_count")
-    )
+    
     
     stmt = select(Product, user_count_subquery).order_by(user_count_subquery.desc())  
     
@@ -40,12 +40,7 @@ async def read_all_products(db: AsyncSession = Depends(get_db), current_user: di
 @router.get("/me", response_model=list[ProductRead])
 async def read_user_products(db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     user_id = int(current_user["user_id"])
-    user_count_subquery = (
-        select(func.count(UserProduct.user_id))
-        .where(UserProduct.product_id == Product.id)
-        .scalar_subquery().correlate(Product)
-        .label("user_count")
-    )
+    
     stmt = (
         select(Product, user_count_subquery)
         .join(UserProduct, Product.id == UserProduct.product_id)
@@ -66,9 +61,7 @@ async def read_user_products(db: AsyncSession = Depends(get_db), current_user: d
 async def read_product(product_id: int, db: AsyncSession = Depends(get_db)):
     # result = await db.execute(select(Product).where(Product.id == product_id))
     # product = result.scalar_one_or_none()
-    user_count_subquery = (
-        select(func.count(UserProduct.user_id)).where(UserProduct.product_id == Product.id).scalar_subquery().label("user_count")
-    )
+    
     stmt = select(Product, user_count_subquery).where(Product.id == product_id)
     product_result = await db.execute(stmt)
     product_row = product_result.first()
