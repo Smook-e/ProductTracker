@@ -8,6 +8,7 @@ from scraper.generic import scrape_generic
 from schemas import ProductScrapeRequest, ProductScrapeResponse, ProductRead
 from datetime import timedelta, datetime
 from utils.oauth2 import get_current_user
+
 router = APIRouter(
     prefix="/products",
     tags=["products"],
@@ -83,7 +84,7 @@ async def create_product(request: ProductScrapeRequest, db: AsyncSession = Depen
     
     urlstr = str(request.url)
     user_id = int(current_user["user_id"])
-    result = await db.execute(select(Product).where(Product.url == str(request.url)))
+    result = await db.execute(select(Product).where(Product.url == urlstr))
     product = result.scalar_one_or_none()
 
     #if product already exists, update the next scrape time and add user-product relationship if it doesn't exist.
