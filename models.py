@@ -61,7 +61,7 @@ class PriceHistory(Base):
     recorded_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=func.now()
     )
-    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))
 
     product: Mapped["Product"] = relationship(
         back_populates="price_histories"
@@ -73,8 +73,8 @@ class UserProduct(Base):
     __tablename__ = "user_products"
 
     # id: Mapped[uuid.UUID] = mapped_column(primary_key=True, index=True, default=uuid.uuid4)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
-    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), primary_key=True)
     added_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=func.now()
     )
