@@ -37,7 +37,8 @@ def scrape_and_update_product(url: str, user_id: int):
                 product_data, price = scrape_generic(str(url))
             except ValueError as e:
                 raise Exception(str(e))
-            product_data["url"] = url
+            except Exception as scrape_error:
+                raise Exception(f"Failed to scrape product data: {str(scrape_error)}")
             product = Product(**product_data)
             product.next_scrape = datetime.now(timezone.utc) + timedelta(hours=2)
             

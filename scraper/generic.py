@@ -21,7 +21,8 @@ def handle_amazon_url(url: str) -> str:
     try:
         dp_index = path_parts.index('dp')
         clean_path = '/'.join(path_parts[dp_index:dp_index+2])  # Keep /dp/PRODUCTID
-        url = f"{parsed_url.scheme}://{parsed_url.netloc}{clean_path}"
+        url = f"{parsed_url.scheme}://{parsed_url.netloc}/{clean_path}"
+        
     except ValueError:
         pass  # If 'dp' not found, keep original URL
     return url
@@ -31,10 +32,8 @@ def scrape_generic(url: str) -> dict:
     domain = urlparse(url).netloc
     
     if domain == "www.amazon.eg":
-        # extract the clean product URL
         url = handle_amazon_url(url)
         
-
     
     response = httpx.get(url, headers=HEADERS, timeout=10)
     response.raise_for_status()
@@ -50,6 +49,7 @@ def scrape_generic(url: str) -> dict:
         "title": scraper.title,
         "image_url": scraper.image_url,
         "source": domain,
+        "url": url
     }, scraper.price
     
     

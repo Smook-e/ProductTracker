@@ -21,6 +21,6 @@ celery_app.conf.update(
 celery_app.conf.beat_schedule = {
     "auto-scrape-expired-products-every-5-minutes": {
         "task": "worker.scheduler.check_expired_products", # Name of our task
-        "schedule": 30.0, # Run every 300 seconds (5 minutes)
+        "schedule": 300.0, # Run every 300 seconds (5 minutes)
     },
 }
