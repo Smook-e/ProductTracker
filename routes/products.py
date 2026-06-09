@@ -48,11 +48,10 @@ async def read_user_products(db: AsyncSession = Depends(get_db), current_user: d
         .where(UserProduct.user_id == user_id)
     )
     result = await db.execute(stmt)
-    product_rows = result.all() # Use .all() to keep both items in the row tuple
+    product_rows = result.all() #list of tuples (Product, user_count)
     
     products_list = []
     
-    # Unpack exactly like your working single-product endpoint
     for product, user_count in product_rows:
         product.user_count = user_count
         products_list.append(product)
