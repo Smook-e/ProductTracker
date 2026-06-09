@@ -96,6 +96,8 @@ class ScraperFactory:
         
         
         selectors = cls._MAPPING.get(domain)
+        if "amazon" in domain:
+            selectors = cls._MAPPING.get("www.amazon.eg")
         if not selectors:
             raise ValueError(f"No scraper class found for {domain}")
         
