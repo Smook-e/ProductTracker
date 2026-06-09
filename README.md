@@ -27,9 +27,9 @@ A backend system for tracking product prices across multiple e-commerce websites
 | POST | `/auth/register` | Register a new user | No |
 | POST | `/auth/login` | Login and receive JWT | No |
 | POST | `/products` | Submit a URL to track | Yes |
-| GET | `/products` | List all tracked products | Yes |
+| GET | `/products` | List all tracked products | No |
 | GET | `/products/me` | List products tracked by current user | Yes |
-| GET | `/products/{id}` | Get product detail | Yes |
+| GET | `/products/{id}` | Get product detail | No |
 | DELETE | `/products/me/{id}` | Stop tracking a product | Yes |
 
 Full interactive docs available at `/docs` once running.
@@ -46,13 +46,13 @@ Full interactive docs available at `/docs` once running.
 Create a `.env` file in the project root:
 
 ```env
-DATABASE_URL=postgresql+asyncpg://postgres:password@postgres:5432/producttracker
-SYNC_DATABASE_URL=postgresql+psycopg2://postgres:password@postgres:5432/producttracker
+DATABASE_URL=postgresql://postgres:password@postgres:5432/tracker
+ASYNC_DATABASE_URL=postgresql+asyncpg://postgres:password@postgres:5432/tracker
+POSTGRES_DB=tracker
 REDIS_URL=redis://redis:6379/0
 
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=password
-POSTGRES_DB=producttracker
 
 SECRET_KEY=your-secret-key
 ALGORITHM=HS256
