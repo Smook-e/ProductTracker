@@ -27,7 +27,7 @@ user_count_subquery = (
         .label("user_count")
     )
 @router.get("/", response_model=list[ProductRead])
-async def read_all_products(db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
+async def read_all_products(db: AsyncSession = Depends(get_db)):
     
     stmt = select(Product, user_count_subquery).order_by(user_count_subquery.desc())  
     product_result = await db.execute(stmt)
@@ -61,7 +61,7 @@ async def read_user_products(db: AsyncSession = Depends(get_db), current_user: d
     return products_list
 
 @router.get("/by-url", response_model=ProductRead)
-async def read_product_by_url(url: HttpUrl, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
+async def read_product_by_url(url: HttpUrl, db: AsyncSession = Depends(get_db)):
     normalized_url = normalize_product_url(str(url))
     cached_product = await get_cached_product_by_url(normalized_url)
     if cached_product:
