@@ -6,6 +6,10 @@ from routes.auth import router as auth_router
 from routes.products import router as products_router
 
 from fastapi.middleware.cors import CORSMiddleware  
+
+from database import create_tables
+
+create_tables()  # Create tables at startup (for development; consider migrations for production)
 app = FastAPI()
 app.include_router(users_router)
 app.include_router(auth_router)

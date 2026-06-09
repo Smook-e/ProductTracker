@@ -12,13 +12,15 @@ DATABASE_URL = os.getenv("ASYNC_DATABASE_URL")
 # 1. Create the Async Engine
 engine = create_async_engine(DATABASE_URL, echo=True)
 
+def create_tables():
+    Base.metadata.create_all(engine)
+
 # 2. Create the Async Session Maker
 AsyncSessionLocal = async_sessionmaker(
     bind=engine, 
     class_=AsyncSession, 
     expire_on_commit=False
 )
-
 # 3. Base class for models
 class Base(DeclarativeBase):
     pass
