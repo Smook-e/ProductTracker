@@ -8,9 +8,14 @@ from routes.products import router as products_router
 from fastapi.middleware.cors import CORSMiddleware  
 
 from database import create_tables
+from contextlib import asynccontextmanager
 
-create_tables()  # Create tables at startup (for development; consider migrations for production)
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await create_tables()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(users_router)
 app.include_router(auth_router)
 app.include_router(products_router)
@@ -33,4 +38,4 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Hello World!"}

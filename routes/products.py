@@ -8,6 +8,7 @@ from scraper.generic import scrape_generic
 from schemas import ProductScrapeRequest, ProductScrapeResponse, ProductRead
 from datetime import timedelta, datetime
 from utils.oauth2 import get_current_user
+from worker.tasks import scrape_and_update_product
 
 router = APIRouter(
     prefix="/products",
@@ -22,16 +23,10 @@ user_count_subquery = (
 @router.get("/", response_model=list[ProductRead])
 async def read_all_products(db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     
-    
-    
     stmt = select(Product, user_count_subquery).order_by(user_count_subquery.desc())  
-    
     product_result = await db.execute(stmt)
     product_rows = product_result.all()  
-    
     products_list = []
-    
-    
     for product, user_count in product_rows:
         product.user_count = user_count
         products_list.append(product)
@@ -74,53 +69,53 @@ async def read_product(product_id: int, db: AsyncSession = Depends(get_db)):
     return product
 
 
-@router.post("/", response_model=ProductRead , status_code=status.HTTP_201_CREATED) 
+@router.post("/", status_code=status.HTTP_202_ACCEPTED) 
 async def create_product(request: ProductScrapeRequest, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    try:
-        product_data, price = scrape_generic(str(request.url))
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    # try:
+    #     product_data, price = scrape_generic(str(request.url))
+    # except ValueError as e:
+    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     
     urlstr = str(request.url)
     user_id = int(current_user["user_id"])
-    result = await db.execute(select(Product).where(Product.url == urlstr))
-    product = result.scalar_one_or_none()
+    scrape_and_update_product.delay(urlstr, user_id)
+    return {"message": f"Product scrape initiated for URL: {urlstr}"}
 
     #if product already exists, update the next scrape time and add user-product relationship if it doesn't exist.
-    if product:
-        product.next_scrape = datetime.utcnow() + timedelta(hours=2)
-        rel_check = await db.execute(
-            select(UserProduct).where(
-                UserProduct.user_id == user_id, 
-                UserProduct.product_id == product.id
-            )
-        )
-        if not rel_check.scalar_one_or_none():
-            db.add(UserProduct(user_id=user_id, product_id=product.id))
-    else:
+    # if product:
+    #     product.next_scrape = datetime.utcnow() + timedelta(hours=2)
+    #     rel_check = await db.execute(
+    #         select(UserProduct).where(
+    #             UserProduct.user_id == user_id, 
+    #             UserProduct.product_id == product.id
+    #         )
+    #     )
+    #     if not rel_check.scalar_one_or_none():
+    #         db.add(UserProduct(user_id=user_id, product_id=product.id))
+    # else:
 
-        product_data["url"] = urlstr
-        product = Product(**product_data)
-        product.next_scrape = datetime.utcnow() + timedelta(hours=2) 
+    #     product_data["url"] = urlstr
+    #     product = Product(**product_data)
+    #     product.next_scrape = datetime.utcnow() + timedelta(hours=2) 
 
     
-        db.add(product)
-        await db.flush()  
-        db.add(UserProduct(user_id=user_id, product_id=product.id))
+    #     db.add(product)
+    #     await db.flush()  
+    #     db.add(UserProduct(user_id=user_id, product_id=product.id))
 
-    #add the price history entry for the product
-    price_history = PriceHistory(price=price, product_id=product.id)
-    db.add(price_history)
-    await db.commit()
-    await db.refresh(price_history)
+    # #add the price history entry for the product
+    # price_history = PriceHistory(price=price, product_id=product.id)
+    # db.add(price_history)
+    # await db.commit()
+    # await db.refresh(price_history)
     
-    count = await db.execute(select(func.count(UserProduct.user_id).label("user_count"))
-        .where(UserProduct.product_id == product.id)
-        )
+    # count = await db.execute(select(func.count(UserProduct.user_id).label("user_count"))
+    #     .where(UserProduct.product_id == product.id)
+    #     )
     
-    await db.refresh(product)
-    product.user_count = count.scalar_one()
-    return product
+    # await db.refresh(product)
+    # product.user_count = count.scalar_one()
+    # return product
 @router.delete("/me/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user_product(product_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
     user_id = int(current_user["user_id"])
