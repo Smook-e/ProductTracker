@@ -3,9 +3,9 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import  func
 from celery_app import celery_app
-from database import SyncSessionLocal # Your existing sync sessionmaker
-from models import Product, PriceHistory, UserProduct # Your working database models
-# Assume you export your scrape utility function from your scraping file
+from database import SyncSessionLocal 
+from models import Product, PriceHistory, UserProduct 
+
 from scraper.generic import scrape_generic
 
 
