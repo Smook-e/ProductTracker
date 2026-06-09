@@ -7,6 +7,10 @@ from database import SyncSessionLocal
 from models import Product, PriceHistory, UserProduct 
 
 from scraper.generic import scrape_generic
+from utils.product_cache import (
+    normalize_product_url,
+    set_cached_product_by_url_sync,
+)
 
 
 
@@ -18,8 +22,9 @@ def scrape_and_update_product(url: str, user_id: int):
 
     db = SyncSessionLocal()
     try:
+        normalized_url = normalize_product_url(str(url))
         # Query if product url already exists
-        product = db.query(Product).filter(Product.url == url).first()
+        product = db.query(Product).filter(Product.url == normalized_url).first()
 
         if product:
             # product.next_scrape = datetime.now(timezone.utc) + timedelta(hours=2)
@@ -34,7 +39,7 @@ def scrape_and_update_product(url: str, user_id: int):
                 db.add(UserProduct(user_id=user_id, product_id=product.id))
         else:
             try:
-                product_data, price = scrape_generic(str(url))
+                product_data, price = scrape_generic(normalized_url)
             except ValueError as e:
                 raise Exception(str(e))
             except Exception as scrape_error:
@@ -60,6 +65,7 @@ def scrape_and_update_product(url: str, user_id: int):
 
         db.refresh(product)
         product.user_count = count   
+        set_cached_product_by_url_sync(product, count)
 
         return f"Successfully processed tracking records for product url: {url}"
 
