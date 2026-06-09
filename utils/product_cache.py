@@ -26,7 +26,7 @@ def normalize_product_url(url: str) -> str:
     cleaned_url = url.strip()
     parsed_url = urlparse(cleaned_url)
 
-    if parsed_url.netloc == "www.amazon.eg":
+    if "amazon" in parsed_url.netloc:
         return handle_amazon_url(cleaned_url)
 
     return cleaned_url
@@ -45,7 +45,7 @@ def build_product_cache_payload(product: Product, user_count: int | None = None)
         url=product.url,
         created_at=product.created_at,
         next_scrape=product.next_scrape,
-        price_histories=[],
+        price_histories=product.price_histories,
         user_count=user_count if user_count is not None else getattr(product, "user_count", 0),
     )
     return product_read.model_dump(mode="json")
