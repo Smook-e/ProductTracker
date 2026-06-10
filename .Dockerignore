@@ -1,1 +1,35 @@
+# Version Control
+.git
+.gitignore
+
+# Package Manager Cache & Local Dependencies
+node_modules/
+jspm_packages/
+.npm
+.yarn
+venv/
 .venv
+pip-log.txt
+
+# Build Outputs & IDEs
+dist/
+build/
+out/
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Secrets and Logs
+*.log
+.env
+.env.*
+secrets.json
+*.pem
+
+# Docker Files
+.dockerignore
+Dockerfile
+docker-compose.yml
