@@ -43,7 +43,7 @@ Full interactive docs available at `/docs` once running.
 
 ### Environment Variables
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root (or use the example.env):
 
 ```env
 DATABASE_URL=postgresql://postgres:password@postgres:5432/tracker
