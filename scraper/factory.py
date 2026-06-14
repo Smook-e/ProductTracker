@@ -95,13 +95,15 @@ class ScraperFactory:
     def create_scraper(cls, domain: str, html: str) -> BaseScraper:
         
         
-        selectors = cls._MAPPING.get(domain)
+        selectors = cls._MAPPING.get(domain, GenericScraper)
         if "amazon" in domain:
             selectors = cls._MAPPING.get("www.amazon.eg")
-        if not selectors:
-            raise ValueError(f"No scraper class found for {domain}")
+        else:
+            selectors = cls._MAPPING.get(domain, GenericScraper)
+            if not selectors:
+                raise ValueError(f"No scraper class found for {domain}")
         
-        Scraper = cls._MAPPING.get(domain, GenericScraper)['image_url'](html, selectors["title"], selectors["price"])
+        Scraper = selectors['image_url'](html, selectors["title"], selectors["price"])
         Scraper.extract_image()
         return Scraper
 

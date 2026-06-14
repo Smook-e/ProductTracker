@@ -2,6 +2,7 @@ from urllib.parse import urlparse, parse_qs, unquote
 
 import httpx
 
+# from factory import ScraperFactory
 from scraper.factory import ScraperFactory
 
 #urlparse: Splits a URL string into component parts (like protocol, domain, path, and query).
@@ -24,14 +25,14 @@ def handle_amazon_url(url: str) -> str:
         url = f"{parsed_url.scheme}://{parsed_url.netloc}/{clean_path}"
         
     except ValueError:
-        pass  # If 'dp' not found, keep original URL
+        pass  # If dp not found, keep original URL
     return url
 
 def scrape_generic(url: str) -> dict:
     
     domain = urlparse(url).netloc
     
-    if domain == "www.amazon.eg":
+    if "amazon" in domain:
         url = handle_amazon_url(url)
         
     
@@ -56,5 +57,5 @@ def scrape_generic(url: str) -> dict:
 
 
 
-url = "https://www.amazon.eg/ASUS-UX3405CA-PZ007W-Graphics-14-0-Inch-Warranty/dp/B0G42FJ9JS/?_encoding=UTF8&ref_=pd_hp_d_btf_ci_mcx_mr_ca_id_hp_d"
-# scrape_generic(url)
+url = "https://www.amazon.com/GIGABYTE-GeForce-WINDFORCE-Graphics-GV-N5070WF3OC-12GD/dp/B0DTQMLX4F/ref=sr_1_3?sr=8-3"
+print(scrape_generic(url))
