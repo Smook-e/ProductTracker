@@ -58,7 +58,10 @@ SECRET_KEY=your-secret-key
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
-
+Or you can rename the existing `example.env` file to `.env`
+```bash
+cp .env.example .env
+```
 ### Run with Docker Compose
 
 ```bash
