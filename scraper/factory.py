@@ -69,24 +69,8 @@ class GenericScraper(BaseScraper):
         print("generic image URL:", self.image_url)
 
 
-SELECTORS = {
-    "www.amazon.eg": {
-        "title": "span#productTitle",       
-        "price": "span.a-price-whole",      
-        "image_url": amazonScraper,  
-    },
-    "www.sigma-computer.com": {
-        "title": "h1.text-2xl.font-semibold.text-sigma-blue-600",       
-        "price": "span.text-3xl",      
-        "image_url": GenericScraper,  
-    },
-    "hardwaremarket.net": {
-        "title": "h1.product_title",       
-        "price": "p.price ins span.woocommerce-Price-amount.amount bdi",       
-        "image_url": GenericScraper,  
-    },
-}
 
+from scraper.config import SELECTORS
 
 class ScraperFactory:
     _MAPPING = SELECTORS.copy()
