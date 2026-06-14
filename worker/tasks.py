@@ -8,6 +8,7 @@ from models import Product, PriceHistory, UserProduct
 
 from scraper.generic import scrape_generic
 from utils.product_cache import (
+    invalidate_product_list_cache_sync,
     normalize_product_url,
     set_cached_product_by_url_sync,
 )
@@ -66,6 +67,7 @@ def scrape_and_update_product(url: str, user_id: int):
         db.refresh(product)
         product.user_count = count   
         set_cached_product_by_url_sync(product, count)
+        invalidate_product_list_cache_sync()
 
         return f"Successfully processed tracking records for product url: {url}"
 

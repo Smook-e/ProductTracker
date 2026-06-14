@@ -6,8 +6,6 @@ import httpx
 from scraper.factory import ScraperFactory
 
 #urlparse: Splits a URL string into component parts (like protocol, domain, path, and query).
-#parse_qs: Parses the query string of a URL into a dictionary of key-value pairs.
-#unquote: Decodes percent-encoded characters in a URL string back to their original form
 
 
 HEADERS = {
@@ -39,10 +37,9 @@ def scrape_generic(url: str) -> dict:
     response = httpx.get(url, headers=HEADERS, timeout=10)
     response.raise_for_status()
 
-    
-
-
+    #get the appropriate scraper class based on the domain, defaulting to GenericScraper if no specific one is found
     scraper = ScraperFactory.create_scraper(domain, response.text)
+
     if scraper.title == "N/A" and scraper.price == "N/A":
         raise ValueError("Failed to scrape product data")
     # print(scraper.title, "\n",  scraper.price)
@@ -57,5 +54,5 @@ def scrape_generic(url: str) -> dict:
 
 
 
-url = "https://www.amazon.com/GIGABYTE-GeForce-WINDFORCE-Graphics-GV-N5070WF3OC-12GD/dp/B0DTQMLX4F/ref=sr_1_3?sr=8-3"
-print(scrape_generic(url))
+url = "https://www.noon.com/egypt-en/band-11-pro-smart-watch-enhanced-sleep-tracking-health-gnss-position-fitness-tracker-up-to-14-day-battery-life-ultra-slim-comfort-wear-compatible-with-ios-android-black/N70285078V/p/?o=ad0ca7c6c05b11ae&shareId=51f2f9c5-f6fa-419d-8377-77e666b670c5"
+# print(scrape_generic(url))

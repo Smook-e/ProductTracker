@@ -10,12 +10,13 @@ from datetime import timedelta, datetime
 from utils.oauth2 import get_current_user
 from utils.product_cache import (
     delete_cached_product_by_url,
+    invalidate_product_list_cache,
     get_cached_product_by_url,
     normalize_product_url,
     set_cached_product_by_url,
 )
 from worker.tasks import scrape_and_update_product
-from utils.product_cache import ASYNC_REDIS
+from utils.product_cache import ASYNC_REDIS, PRODUCT_LIST_CACHE_KEY
 import json
 router = APIRouter(
     prefix="/products",
@@ -29,7 +30,7 @@ user_count_subquery = (
     )
 @router.get("/", response_model=list[ProductRead])
 async def read_all_products(db: AsyncSession = Depends(get_db)):
-    cache_key = "products:list:v2"
+    cache_key = PRODUCT_LIST_CACHE_KEY
     
     # 1. Try cache first
     if ASYNC_REDIS:
@@ -157,6 +158,7 @@ async def delete_user_product(product_id: int, db: AsyncSession = Depends(get_db
     await db.commit()
     if product:
         await delete_cached_product_by_url(product.url)
+    await invalidate_product_list_cache()
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_product(product_id: int, db: AsyncSession = Depends(get_db), current_user: dict = Depends(get_current_user)):
@@ -171,4 +173,5 @@ async def delete_product(product_id: int, db: AsyncSession = Depends(get_db), cu
     
     await db.commit()
     await delete_cached_product_by_url(product.url)
+    await invalidate_product_list_cache()
 

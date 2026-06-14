@@ -17,6 +17,7 @@ load_dotenv()
 REDIS_URL = os.getenv("REDIS_URL")
 PRODUCT_CACHE_TTL_SECONDS = int(os.getenv("PRODUCT_CACHE_TTL_SECONDS", "300"))
 PRODUCT_CACHE_PREFIX = "product:url:"
+PRODUCT_LIST_CACHE_KEY = "products:list:v2"
 
 SYNC_REDIS = redis.Redis.from_url(REDIS_URL, decode_responses=True) if REDIS_URL else None
 ASYNC_REDIS = redis_async.Redis.from_url(REDIS_URL, decode_responses=True) if REDIS_URL else None
@@ -85,6 +86,13 @@ async def delete_cached_product_by_url(url: str) -> None:
     await ASYNC_REDIS.delete(build_product_cache_key(url))
 
 
+async def invalidate_product_list_cache() -> None:
+    if ASYNC_REDIS is None:
+        return
+
+    await ASYNC_REDIS.delete(PRODUCT_LIST_CACHE_KEY)
+
+
 def get_cached_product_by_url_sync(url: str) -> ProductRead | None:
     if SYNC_REDIS is None:
         return None
@@ -110,3 +118,10 @@ def delete_cached_product_by_url_sync(url: str) -> None:
         return
 
     SYNC_REDIS.delete(build_product_cache_key(url))
+
+
+def invalidate_product_list_cache_sync() -> None:
+    if SYNC_REDIS is None:
+        return
+
+    SYNC_REDIS.delete(PRODUCT_LIST_CACHE_KEY)
