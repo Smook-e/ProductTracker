@@ -49,7 +49,7 @@ def scrape_and_update_product(url: str, user_id: int):
             
             db.add(UserProduct(user_id=user_id, product_id=product.id))
 
-            # Seed first price snapshot for trend history.
+            # Seed first price snapshot using the freshly scraped price.
             db.add(PriceHistory(price=price, product_id=product.id))
 
         db.commit()

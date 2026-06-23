@@ -6,7 +6,7 @@ from scraper.factory import ScraperFactory
 from scraper.config import HEADERS
 
 def handle_amazon_url(url: str) -> str:
-    # Keep only the canonical /dp/<product-id> path so cache keys stay stable.
+    # Keep only the canonical /dp/<product-id> segment for Amazon product pages.
     parsed_url = urlparse(url)
     path_parts = parsed_url.path.split('/')
     try:

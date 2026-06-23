@@ -32,7 +32,7 @@ user_count_subquery = (
 async def read_all_products(db: AsyncSession = Depends(get_db)):
     cache_key = PRODUCT_LIST_CACHE_KEY
     
-    # Serve from Redis when available to reduce repeated aggregate queries.
+    # Serve from Redis when available to reduce repeated database list queries.
     if ASYNC_REDIS:
         cached = await ASYNC_REDIS.get(cache_key)
         if cached:
