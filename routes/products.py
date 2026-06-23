@@ -32,16 +32,14 @@ user_count_subquery = (
 async def read_all_products(db: AsyncSession = Depends(get_db)):
     cache_key = PRODUCT_LIST_CACHE_KEY
     
-    # 1. Try cache first
+    # Serve from Redis when available to reduce repeated aggregate queries.
     if ASYNC_REDIS:
         cached = await ASYNC_REDIS.get(cache_key)
         if cached:
             return json.loads(cached)
 
-    # 2. Cache miss → query DB
+    # Cache miss: query products with computed watcher counts.
     stmt = select(Product, user_count_subquery).order_by(user_count_subquery.desc())
-    # Optional: Add this if you want price histories too
-    # .options(selectinload(Product.price_histories))
 
     result = await db.execute(stmt)
     product_rows = result.all()
@@ -70,7 +68,7 @@ async def read_all_products(db: AsyncSession = Depends(get_db)):
         products_data.append(product_dict)
 
 
-    # 3. Cache the full list
+    # Cache serialized response for short-lived list reuse.
     if ASYNC_REDIS:
         await ASYNC_REDIS.set(cache_key, json.dumps(products_data), ex=300)  
 
@@ -117,9 +115,6 @@ async def read_product_by_url(url: HttpUrl, db: AsyncSession = Depends(get_db)):
 
 @router.get("/{product_id}", response_model=ProductRead)
 async def read_product(product_id: int, db: AsyncSession = Depends(get_db)):
-    # result = await db.execute(select(Product).where(Product.id == product_id))
-    # product = result.scalar_one_or_none()
-    
     stmt = select(Product, user_count_subquery).where(Product.id == product_id)
     product_result = await db.execute(stmt)
     product_row = product_result.first()
@@ -168,10 +163,8 @@ async def delete_product(product_id: int, db: AsyncSession = Depends(get_db), cu
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    # Then delete the product
     await db.delete(product)
     
     await db.commit()
     await delete_cached_product_by_url(product.url)
     await invalidate_product_list_cache()
-

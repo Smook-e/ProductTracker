@@ -19,18 +19,14 @@ from utils.product_cache import (
 
 @celery_app.task
 def scrape_and_update_product(url: str, user_id: int):
-    
-
     db = SyncSessionLocal()
     try:
         normalized_url = normalize_product_url(str(url))
-        # Query if product url already exists
+        # Reuse existing product records to avoid duplicate product rows per URL.
         product = db.query(Product).filter(Product.url == normalized_url).first()
 
         if product:
-            # product.next_scrape = datetime.now(timezone.utc) + timedelta(hours=2)
-            
-            # Check if user has already added the product to their watchlist
+            # Attach the requesting user to the existing product if needed.
             rel_check = db.query(UserProduct).filter(
                 UserProduct.user_id == user_id,
                 UserProduct.product_id == product.id
@@ -49,17 +45,17 @@ def scrape_and_update_product(url: str, user_id: int):
             product.next_scrape = datetime.now(timezone.utc) + timedelta(hours=2)
             
             db.add(product)
-            db.flush()  # Forces generation of product.id
+            db.flush()
             
             db.add(UserProduct(user_id=user_id, product_id=product.id))
 
-        # Record price timeline capture
+            # Seed first price snapshot for trend history.
             db.add(PriceHistory(price=price, product_id=product.id))
 
         db.commit()
         db.refresh(product)
 
-        # Count users watching this product 
+        # Refresh cache payload with the latest watcher count.
         count = db.query(func.count(UserProduct.user_id).label("user_count"))\
                   .filter(UserProduct.product_id == product.id)\
                   .scalar()
