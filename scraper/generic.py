@@ -23,7 +23,6 @@ def scrape_generic(url: str) -> dict:
     parsed_url = urlparse(url)
     if "amazon" in parsed_url.netloc:
         url = handle_amazon_url(url)
-        parsed_url = urlparse(url)
     domain = parsed_url.netloc
     
     response = httpx.get(url, headers=HEADERS, timeout=10)
