@@ -20,11 +20,9 @@ def handle_amazon_url(url: str) -> str:
 
 def scrape_generic(url: str) -> dict:
     # Normalize Amazon links first, then scrape using a domain-specific parser.
-    domain = urlparse(url).netloc
-    
-    if "amazon" in domain:
+    if "amazon" in urlparse(url).netloc:
         url = handle_amazon_url(url)
-        
+    domain = urlparse(url).netloc
     
     response = httpx.get(url, headers=HEADERS, timeout=10)
     response.raise_for_status()
