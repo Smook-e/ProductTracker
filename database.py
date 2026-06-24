@@ -1,4 +1,3 @@
-# database.py
 import os
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
@@ -8,16 +7,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 load_dotenv()
 
-# Ensure this URL starts with postgresql+asyncpg://
+# Async engine/session used by FastAPI request handlers.
 DATABASE_URL = os.getenv("ASYNC_DATABASE_URL")
 
-
-
-# 2. Create the Async Session Maker
 engine = create_async_engine(
     DATABASE_URL,
     echo=False,
-    poolclass=NullPool,          # ← This is the key fix for Celery + asyncpg
+    poolclass=NullPool,
     pool_pre_ping=True,
 )
 
@@ -25,13 +21,13 @@ AsyncSessionLocal = async_sessionmaker(
     bind=engine, 
     class_=AsyncSession, 
     expire_on_commit=False,
-    autoflush=False,               # Important for async
+    autoflush=False,
 )
-# 3. Base class for models
+
 class Base(DeclarativeBase):
     pass
 
-# 4. FastAPI Dependency for Database Session
+# Dependency that yields one async session per request.
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
@@ -41,8 +37,8 @@ async def create_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-
-SYNC_DATABASE_URL = os.getenv("DATABASE_URL")  # use sync version: postgresql://...
+# Sync engine/session used by Celery worker tasks.
+SYNC_DATABASE_URL = os.getenv("DATABASE_URL")
 
 sync_engine = create_engine(
     SYNC_DATABASE_URL, 
@@ -58,4 +54,3 @@ def get_sync_db():
         yield db
     finally:
         db.close()
-

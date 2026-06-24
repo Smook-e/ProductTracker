@@ -17,8 +17,8 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    username: Mapped[str] = mapped_column(unique=True) # nullable=False is automatic for str
-    email: Mapped[str | None] = mapped_column(unique=True) # None means nullable=True
+    username: Mapped[str] = mapped_column(unique=True)
+    email: Mapped[str | None] = mapped_column(unique=True)
     phone_number: Mapped[str | None] = mapped_column(unique=True)
     password_hash: Mapped[str] = mapped_column()
     notification_channel: Mapped[NotificationChannel | None] = mapped_column(Enum(NotificationChannel))
@@ -72,7 +72,7 @@ class PriceHistory(Base):
 class UserProduct(Base):
     __tablename__ = "user_products"
 
-    # id: Mapped[uuid.UUID] = mapped_column(primary_key=True, index=True, default=uuid.uuid4)
+    # Composite key prevents duplicate (user, product) tracking rows.
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), primary_key=True)
     added_at: Mapped[datetime] = mapped_column(
