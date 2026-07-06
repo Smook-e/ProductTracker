@@ -2,6 +2,8 @@
 
 A backend system for tracking product prices across multiple e-commerce websites. Users submit a product URL, the system scrapes and stores the data, and automated background workers refresh prices daily without blocking API requests.
 
+ProductTracker began as a small tool to help me monitor the prices of PC components while planning my own desktop build. As I continued developing it, I treated it as an opportunity to explore scalable backend architecture, eventually adding distributed task processing, Redis caching, scheduled workers, and support for multiple e-commerce websites.
+
 ## Stack
 
 - **FastAPI** — async REST API
